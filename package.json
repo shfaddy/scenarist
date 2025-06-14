@@ -1,0 +1,36 @@
+{
+  "name": "@shfaddy/scenarist",
+  "version": "1.0.0",
+  "description": "Node.js Platform and Framework for Creating Modular Recursive Shell Apps",
+  "keywords": [
+    "shfaddy",
+    "shaikhfaddy",
+    "scenarist",
+    "framework",
+    "functional",
+    "scenarios",
+    "apps",
+    "vanilla",
+    "versatile",
+    "recursive",
+    "recursion"
+  ],
+  "homepage": "https://github.com/shfaddy/scenarist#readme",
+  "bugs": {
+    "url": "https://github.com/shfaddy/scenarist/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shfaddy/scenarist.git"
+  },
+  "license": "Unlicense",
+  "author": "Shaikh Faddy <shfaddy@gmail.com> (https://github.com/shfaddy#README)",
+  "type": "module",
+  "bin": "./index.js",
+  "main": "index.js",
+  "exports": {
+    ".": "./core.js",
+    "./shell": "./shell.js",
+    "./hello": "./hello.js"
+  }
+}
