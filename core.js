@@ -1,5 +1,7 @@
 export default class Scenarist {
 
+ready = [];
+
 constructor ( scenario = {}, details = {} ) {
 
 this .scenario = scenario;
@@ -19,19 +21,23 @@ if ( details .senior instanceof Scenarist )
 this .senior = details .senior;
 
 if ( typeof scenario ?.$_producer !== 'undefined' )
-this .ready = details .story instanceof this .constructor .Story ?
-this .play ( details .story, Symbol .for ( 'producer' ), ... details .story .scene )
-: this .play ( Symbol .for ( 'producer' ) );
+this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details ) );
 
 }; // this .constructor
 
 async publish () {
 
-await this .ready;
+await Promise .all ( this .ready );
 
 return this .play;
 
 }; // this .publish
+
+async throw ( message ) {
+
+throw `${ ( await this .play ( Symbol .for ( 'location' ) ) ) .join ( '/' ) }: ${ message }`;
+
+};
 
 static Story = class Story {
 
@@ -68,7 +74,7 @@ else if ( story .direction === undefined )
 return;
 
 else
-throw "Unknown direction: " + story .direction .toString ();
+await this .throw ( "Unknown direction: " + story .direction .toString () );
 
 }
 
@@ -100,12 +106,12 @@ case 'function':
 if ( story .conflict === story .conflict ?.prototype ?.constructor ) {
 
 if ( ! scene .length )
-throw `direction for the new ${ story .conflict .name } scenario is missing`;
+await this .throw ( `direction for the new ${ story .conflict .name } scenario is missing` );
 
 story .location = this .constructor .location ( story .direction = scene .shift () );
 
 if ( story .setting [ story .location ] !== undefined )
-throw `Scenario with the direction ${ story .direction } already exists`;
+await this .throw ( `Scenario with the direction ${ story .direction } already exists` );
 
 story .setting [ story .location ] = new story .conflict ( this .scenario .details );
 
