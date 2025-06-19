@@ -1,7 +1,9 @@
 import Scenarist from '@shfaddy/scenarist';
+import Nota from './nota.js';
 import { Interface, createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { parse, join } from 'node:path';
+import { readdir as list } from 'node:fs/promises';
 
 export default class ScenaristAsAShell extends Scenarist {
 
@@ -9,7 +11,16 @@ constructor ( ... argv ) {
 
 super ( ... argv );
 
-this .interface = this .senior ?.interface instanceof Interface ? this .senior .interface : createInterface ( { input, output } );
+if ( this .senior ?.interface instanceof Interface )
+this .interface = this .senior .interface;
+
+else {
+
+this .interface = createInterface ( { input, output } );
+
+this .interrupt ();
+
+}
 
 };
 
@@ -19,13 +30,15 @@ this .interface [ Symbol .for ( 'interrupt' ) ] = new Promise ( check => {
 
 this .interface [ Symbol .for ( 'interrupt/check' ) ] = check;
 
-} ) .then ( () => this .interrupt () );
+} );
+
+this .interface [ Symbol .for ( 'interrupt' ) ] .then ( () => this .interface [ Symbol .for ( 'scenarist' ) ] .interrupt () );
 
 this .interface .once ( 'SIGINT', () => {
 
 this .interface [ Symbol .for ( 'interrupt/check' ) ] ();
 
-return this .play ( Symbol .for ( 'interrupt' ) );
+return this .interface [ Symbol .for ( 'scenarist' ) ] .play ( Symbol .for ( 'interrupt' ) );
 
 } );
 
@@ -35,11 +48,20 @@ async publish () {
 
 await this .ready;
 
-this .play ( Symbol .for ( 'prompt' ), ... process .argv .slice ( 2 ) );
+const argv = process .argv .slice ( 2 );
+
+if ( ( await list ( '.' ) ) .includes ( 'scenario.js' ) )
+argv .unshift ( '--open', 'scenario.js', process .cwd () .split ( '/' ) .pop () );
+
+this .play ( Symbol .for ( 'prompt' ), ... argv );
 
 return this .play;
 
 };
+
+get [ '$--nota' ] () { return this .$_nota };
+
+$_nota = new Nota;
 
 async [ '$--open' ] ( { play: $ }, path, direction ) {
 
@@ -60,8 +82,11 @@ return true;
 
 };
 
-async $_prompt ( { play: $ }, ... argv ) {
+async $_prompt ( story, ... argv ) {
 
+this .interface [ Symbol .for ( 'scenarist' ) ] = this;
+
+const { play: $ } = story;
 let line = this .interface .question ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + ': ' )
 .catch ( error => false );
 
@@ -71,7 +96,7 @@ this .interface .write ( argv .join ( ' ' ) + '\n' );
 if ( ( line = await line ) === false )
 return;
 
-return $ ( Symbol .for ( 'process' ), ... line .trim () .length ? line .split ( /\s+/ ) : [] );
+return $ ( story, Symbol .for ( 'process' ), ... line .trim () .length ? line .split ( /\s+/ ) : [] );
 
 };
 
@@ -79,20 +104,15 @@ async $_process ( story, ... argv ) {
 
 const { play: $ } = story;
 
-if ( ! argv .length )
-return $ ( Symbol .for ( 'prompt' ) );
-
 let response;
 
 this .interface [ Symbol .for ( 'processing' ) ] = true;
 
 try {
 
-await this .interrupt ();
-
 await $ (
 
-'--output',
+Symbol .for ( 'output' ),
 response = await $ ( Object .assign ( story, {
 
 interrupt: this .interface [ Symbol .for ( 'interrupt' ) ]
@@ -105,15 +125,22 @@ interrupt: this .interface [ Symbol .for ( 'interrupt' ) ]
 
 console .error ( error );
 
+this .interface [ Symbol .for ( 'processing' ) ] = false;
+
+if ( story .return === true )
+return Symbol .for ( 'error' );
+
 }
 
 this .interface [ Symbol .for ( 'processing' ) ] = false;
 
-return ( typeof response === 'function' ? response : $ ) ( Symbol .for ( 'prompt' ) );
+return story .return !== true ? ( typeof response === 'function' ? response : $ ) ( Symbol .for ( 'prompt' ) ) : Symbol .for ( 'done' );
 
 };
 
-[ '$--output' ] ( { play: $ }, ... argv ) {
+get [ '$--output' ] () { return this .$_output };
+
+$_output ( { play: $ }, ... argv ) {
 
 if ( ! argv .length )
 return;
@@ -127,7 +154,7 @@ case 'object':
 if ( typeof response [ Symbol .iterator ] !== 'function' )
 response = Object .entries ( response );
 
-return $ ( '--output', ... [ ... response ] .map (
+return $ ( Symbol .for ( 'output' ), ... [ ... response ] .map (
 
 output => output instanceof Array ? output .join ( ': ' ) : output
 
@@ -148,7 +175,7 @@ break;
 
 }
 
-return $ ( '--output', ... argv );
+return $ ( Symbol .for ( 'output' ), ... argv );
 
 };
 
@@ -167,7 +194,7 @@ this .interface .prompt ();
 }
 
 else
-return $ ( Symbol .for ( 'prompt' ), '--exit' );
+return this .scenario .priority === true ? this .interface .prompt () : $ ( Symbol .for ( 'prompt' ), '--exit' );
 
 };
 

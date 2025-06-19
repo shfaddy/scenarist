@@ -50,7 +50,7 @@ story .play = this .play;
 story .scene = scene;
 story .location = this .constructor .location ( story .direction = scene .shift () );
 
-if ( this [ story .location ] )
+if ( ( typeof story .direction === 'symbol' || this .scenario .priority !== true ) && this [ story .location ] )
 story .conflict = await ( story .setting = this ) [ story .location ];
 
 else
@@ -104,7 +104,7 @@ story .location = this .constructor .location ( story .direction = scene .shift 
 if ( story .setting [ story .location ] !== undefined )
 throw `Scenario with the direction ${ story .direction } already exists`;
 
-this .scenario [ story .location ] = new story .conflict ( this .scenario .details );
+story .setting [ story .location ] = new story .conflict ( this .scenario .details );
 
 story .resolution = await this .play ( story, story .direction, '.', ... scene );
 
@@ -144,17 +144,27 @@ return this .scenario .direction = direction;
 
 };
 
-[ '$.' ] ( story, ... argv ) {
+get [ '$.' ] () { return this .$_this };
+
+$_this ( story, ... argv ) {
 
 return argv .length ? this .play ( story, ... argv ) : this .play;
 
 }; // this .play ( '.', ... argv )
 
-[ '$..' ] ( story, ... argv ) {
+get [ '$..' ] () { return this .$_senior };
+
+$_senior ( story, ... argv ) {
 
 return ( this .senior ?.play || this .play ) ( story, '.', ... argv );
 
 }; // this .play ( '..', ... argv )
+
+[ '$~' ] ( story, ... argv ) {
+
+return this .senior ?.play ? this .senior .play ( story, '~', ... argv ) : this .play ( story, '.', ... argv );
+
+};
 
 [ '$--direction' ] ( _, direction = this .direction ) {
 
