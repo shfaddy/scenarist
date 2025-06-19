@@ -64,6 +64,9 @@ story .scene .unshift ( story .direction );
 if ( typeof story .setting .$_director !== 'undefined' )
 return await story .play ( story, Symbol .for ( 'director' ), ... story .scene );
 
+else if ( story .direction === undefined )
+return;
+
 else
 throw "Unknown direction: " + story .direction .toString ();
 
