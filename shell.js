@@ -22,6 +22,14 @@ this .interrupt ();
 
 }
 
+if ( ! ( this .scenario instanceof Nota ) ) {
+
+this .$_nota = new Nota;
+
+this .ready .push ( this .play ( Symbol .for ( 'prompt' ), '--nota', 'play' ) );
+
+}
+
 };
 
 interrupt () {
@@ -46,7 +54,10 @@ return this .interface [ Symbol .for ( 'scenarist' ) ] .play ( Symbol .for ( 'in
 
 async publish () {
 
-await this .ready;
+await super .publish ();
+
+if ( this .senior )
+return this .play;
 
 const argv = process .argv .slice ( 2 );
 
@@ -60,8 +71,6 @@ return this .play;
 };
 
 get [ '$--nota' ] () { return this .$_nota };
-
-$_nota = new Nota;
 
 async [ '$--open' ] ( { play: $ }, path, direction ) {
 

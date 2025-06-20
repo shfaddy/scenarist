@@ -1,4 +1,18 @@
+import { readdir as list, mkdir as make, readFile as read, writeFile as write } from 'node:fs/promises';
+
 export default class Nota extends Array {
+
+async $_producer ( { play: $ } ) {
+
+try {
+
+for ( let line of ( await read ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota', 'utf8' ) ) .split ( '\n' ) )
+if ( ( line = line .trim () ) .length )
+await $ ( 'enter', ... line .split ( /\s+/ ) );
+
+} catch ( _ ) {}
+
+};
 
 $_director ( { play: $ }, ... argv ) {
 
@@ -11,10 +25,18 @@ argv => argv .join ( ' ' )
 
 };
 
-$enter ( { play: $ }, ... argv ) {
+async $enter ( { play: $ }, ... argv ) {
 
-if ( argv .length )
+if ( ! argv .length )
+return $ ();
+
 this .push ( argv );
+
+const location = [ '.', ... await $ ( Symbol .for ( 'location' ) ) ];
+
+await make ( location .slice ( 0, -1 ) .join ( '/' ), { recursive: true } );
+
+await write ( location .join ( '/' ) + '.nota', ( await $ () ) .join ( '\n' ), 'utf8' );
 
 return $ ();
 

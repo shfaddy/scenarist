@@ -91,7 +91,7 @@ senior: this
 
 } ) );
 
-await junior .ready;
+await junior .publish ();
 
 this .plot .set ( story .conflict, junior );
 
@@ -175,7 +175,9 @@ return this .senior ?.play ? this .senior .play ( story, '~', ... argv ) : this 
 
 };
 
-[ '$--direction' ] ( _, direction = this .direction ) {
+get [ '$--direction' ] () { return this .$_direction };
+
+$_direction ( _, direction = this .direction ) {
 
 return typeof direction === 'symbol' ? this .senior .play ( '--direction' ) : this .direction = direction;
 
