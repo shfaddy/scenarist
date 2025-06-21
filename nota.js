@@ -2,13 +2,26 @@ import { readdir as list, mkdir as make, readFile as read, writeFile as write } 
 
 export default class Nota extends Array {
 
-async $_producer ( { play: $ } ) {
+async $_producer ( story ) {
+
+const { play: $ } = story;
 
 try {
 
-for ( let line of ( await read ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota', 'utf8' ) ) .split ( '\n' ) )
+const file = await read (
+
+( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota',
+'utf8'
+
+) .then ( file => file .split ( '\n' ) )
+.catch ( () => false );
+
+if ( file !== false )
+for ( let line of file )
 if ( ( line = line .trim () ) .length )
 await $ ( 'enter', ... line .split ( /\s+/ ) );
+
+await $ ( Object .assign ( story, { return: true } ), Symbol .for ( 'prompt' ), 'play' );
 
 } catch ( _ ) {}
 

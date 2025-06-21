@@ -26,7 +26,7 @@ if ( ! ( this .scenario instanceof Nota ) ) {
 
 this .$_nota = new Nota;
 
-this .ready .push ( this .play ( Symbol .for ( 'prompt' ), '--nota', 'play' ) );
+this .ready .push ( this .play ( '--nota' ) );
 
 }
 
