@@ -35,6 +35,8 @@ return this .play;
 
 async throw ( message ) {
 
+console .log ( await this .play ( Symbol .for ( 'location' ) ) );
+
 throw `${ ( await this .play ( Symbol .for ( 'location' ) ) ) .join ( '/' ) }: ${ message }`;
 
 };
@@ -179,18 +181,22 @@ get [ '$--direction' ] () { return this .$_direction };
 
 $_direction ( _, direction = this .direction ) {
 
-return typeof direction === 'symbol' ? this .senior .play ( '--direction' ) : this .direction = direction;
+return typeof direction === 'symbol' ? undefined : this .direction = direction;
 
 }; // this .play ( '--direction', direction )
 
 async $_location ( { play: $ } ) {
 
+const location = [];
 const direction = await $ ( '--direction' );
 
-if ( ! this .senior )
-return direction ?.length ? [ direction ] : [];
+if ( direction !== undefined )
+location .push ( direction );
 
-return [ ... await this .senior .play ( Symbol .for ( 'location' ) ), direction ];
+if ( ! this .senior )
+return location;
+
+return [ ... await this .senior .play ( Symbol .for ( 'location' ) ), ... location ];
 
 }; // this .play ( Symbol .for ( 'location ) )
 
