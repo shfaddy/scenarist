@@ -143,7 +143,7 @@ return Symbol .for ( 'error' );
 
 this .interface [ Symbol .for ( 'processing' ) ] = false;
 
-return story .return !== true ? ( typeof response === 'function' ? response : $ ) ( Symbol .for ( 'prompt' ) ) : Symbol .for ( 'done' );
+return story .return !== true ? ( typeof response === 'function' ? response : $ ) ( Symbol .for ( 'prompt' ) ) : response;
 
 };
 

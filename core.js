@@ -21,7 +21,7 @@ if ( details .senior instanceof Scenarist )
 this .senior = details .senior;
 
 if ( typeof scenario ?.$_producer !== 'undefined' )
-this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details ) );
+this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details || this .senior ?.scenario ?.details ) );
 
 }; // this .constructor
 
@@ -34,8 +34,6 @@ return this .play;
 }; // this .publish
 
 async throw ( message ) {
-
-console .log ( await this .play ( Symbol .for ( 'location' ) ) );
 
 throw `${ ( await this .play ( Symbol .for ( 'location' ) ) ) .join ( '/' ) }: ${ message }`;
 

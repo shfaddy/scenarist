@@ -10,7 +10,7 @@ try {
 
 const file = await read (
 
-( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota',
+( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota',
 'utf8'
 
 ) .then ( file => file .split ( '\n' ) )
@@ -21,9 +21,13 @@ for ( let line of file )
 if ( ( line = line .trim () ) .length )
 await $ ( 'enter', ... line .split ( /\s+/ ) );
 
-await $ ( Object .assign ( story, { return: true } ), Symbol .for ( 'prompt' ), 'play' );
+await $ ( Object .assign ( story, { return: true } ), 'play' );
 
-} catch ( _ ) {}
+} catch ( _ ) {
+
+console .log ( '#bad', _ );
+
+}
 
 };
 
@@ -45,11 +49,11 @@ return $ ();
 
 this .push ( argv );
 
-const location = [ '.', ... await $ ( Symbol .for ( 'location' ) ) ];
+const location = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ];
 
-await make ( location .slice ( 0, -1 ) .join ( '/' ), { recursive: true } );
+await make ( location .join ( '/' ), { recursive: true } );
 
-await write ( location .join ( '/' ) + '.nota', ( await $ () ) .join ( '\n' ), 'utf8' );
+await write ( [ ... location, '.nota' ] .join ( '/' ), ( await $ () ) .join ( '\n' ), 'utf8' );
 
 return $ ();
 
@@ -61,15 +65,25 @@ if ( ! argv .length )
 argv = this .slice ( 0 );
 
 const { play: $ } = story;
+const play = typeof argv [ 0 ] === 'function' ? argv .shift () : await $ ( Symbol .for ( 'senior' ) );
 const line = argv .shift ();
 
 if ( line === undefined )
-throw "There is nothing to play in this nota";
+return;
 
-if ( await $ ( Object .assign ( story, { return: true } ), Symbol .for ( 'senior' ), Symbol .for ( 'prompt' ), ... line ) === Symbol .for ( 'error' ) )
+const output = await play ( Object .assign ( story, {
+
+return: true
+
+} ), Symbol .for ( 'prompt' ), ... line );
+
+if ( output === Symbol .for ( 'error' ) )
 throw "Could not complete playing this nota";
 
-return argv .length ? $ ( Symbol .for ( 'play' ), ... argv ) : Symbol .for ( 'done' );
+if ( typeof output === 'function' && argv .length )
+argv .unshift ( output );
+
+return argv .length ? $ ( 'play', ... argv ) : Symbol .for ( 'done' );
 
 };
 
