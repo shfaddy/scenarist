@@ -96,7 +96,7 @@ async $_prompt ( story, ... argv ) {
 this .interface [ Symbol .for ( 'scenarist' ) ] = this;
 
 const { play: $ } = story;
-let line = this .interface .question ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( '/' ) + ': ' )
+let line = this .interface .question ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( ' ' ) + ': ' )
 .catch ( error => false );
 
 if ( argv .length )
@@ -105,7 +105,7 @@ this .interface .write ( argv .join ( ' ' ) + '\n' );
 if ( ( line = await line ) === false )
 return;
 
-return $ ( story, Symbol .for ( 'process' ), ... line .trim () .length ? line .split ( /\s+/ ) : [] );
+return $ ( story, Symbol .for ( 'process' ), ... ( line = line .trim () ) .length ? line .split ( /\s+/ ) : [] );
 
 };
 
