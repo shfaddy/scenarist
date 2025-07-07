@@ -2,30 +2,28 @@ import { readdir as list, mkdir as make, readFile as read, writeFile as write } 
 
 export default class Nota extends Array {
 
-async $_producer ( story ) {
+async $_producer ( _ ) {
 
-const { play: $ } = story;
+const { play: $ } = _;
 
 try {
 
-const file = await read (
+const location = [ ... ( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ), '.nota' ] .join ( '/' );
 
-( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ) .join ( '/' ) + '.nota',
-'utf8'
-
-) .then ( file => file .split ( '\n' ) )
+const file = await read ( location, 'utf8' )
+.then ( file => file .split ( '\n' ) )
 .catch ( () => false );
 
 if ( file !== false )
 for ( let line of file )
 if ( ( line = line .trim () ) .length )
-await $ ( 'enter', ... line .split ( /\s+/ ) );
+await $ ( _, 'enter', ... line .split ( /\s+/ ) );
 
-await $ ( Object .assign ( story, { return: true } ), 'play' );
+await $ ( _, 'play' );
 
 } catch ( _ ) {
 
-console .log ( '#bad', _ );
+console .error ( '#bad', _ );
 
 }
 
@@ -36,9 +34,31 @@ $_director ( { play: $ }, ... argv ) {
 if ( ! argv .length )
 return this .map (
 
-argv => argv .join ( ' ' )
+( argv, index ) => `${ this .numbered ? ( ++index + ' ' ) : '' }${ argv .join ( ' ' ) }`
 
 );
+
+};
+
+[ '$--numbered' ] ( { play: $ }, answer ) {
+
+switch ( answer ) {
+
+case 'no':
+case 'false':
+case 'balash':
+
+this .numbered = false;
+
+break;
+
+default:
+
+this .numbered = true;
+
+}
+
+return $ ();
 
 };
 
@@ -49,41 +69,53 @@ return $ ();
 
 this .push ( argv );
 
+return $ ( Symbol .for ( 'file' ) );
+
+};
+
+async $_file ( { play: $ } ) {
+
 const location = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ];
 
 await make ( location .join ( '/' ), { recursive: true } );
 
-await write ( [ ... location, '.nota' ] .join ( '/' ), ( await $ () ) .join ( '\n' ), 'utf8' );
+await write ( [ ... location, '.nota' ] .join ( '/' ), this .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ), 'utf8' );
 
 return $ ();
 
 };
 
-async $play ( story, ... argv ) {
+async $play ( _ ) {
 
-if ( ! argv .length )
-argv = this .slice ( 0 );
+const { play: $ } = _;
 
-const { play: $ } = story;
-const play = typeof argv [ 0 ] === 'function' ? argv .shift () : await $ ( Symbol .for ( 'senior' ) );
-const line = argv .shift ();
+if ( _ .nota === undefined )
+_ .nota = this .splice ( 0 );
 
-if ( line === undefined )
-return;
+if ( ! _ .nota .length )
+return $ ( Symbol .for ( 'file' ) );
 
-const output = await play ( Object .assign ( story, {
+const argv = _ .nota .shift ();
 
-return: true
+if ( ! _ .return )
+_ .return = true;
 
-} ), Symbol .for ( 'prompt' ), ... line );
+const output = await $ ( _, Symbol .for ( 'senior' ), Symbol .for ( 'prompt' ), ... argv );
 
 if ( output === Symbol .for ( 'error' ) )
 throw "Could not complete playing this nota";
 
-if ( typeof output === 'function' && argv .length )
-argv .unshift ( output );
+this .push ( argv );
 
-return argv .length ? $ ( 'play', ... argv ) : Symbol .for ( 'done' );
+if ( typeof output === 'function' )
+return Promise .all ( [
+
+$ ( Symbol .for ( 'file' ) ),
+( await output ( Symbol .for ( 'nota' ), '.' ) ) ( _, 'play' )
+
+] );
+
+return $ ( _, 'play' );
 
 };
 

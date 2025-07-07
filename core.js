@@ -91,9 +91,9 @@ senior: this
 
 } ) );
 
-await junior .publish ();
-
 this .plot .set ( story .conflict, junior );
+
+await junior .publish ();
 
 }
 
@@ -115,7 +115,7 @@ await this .throw ( `Scenario with the direction ${ story .direction } already e
 
 story .setting [ story .location ] = new story .conflict ( this .scenario .details );
 
-story .resolution = await this .play ( story, story .direction, '.', ... scene );
+story .resolution = await this .play ( story, story .direction, ... scene );
 
 }
 
