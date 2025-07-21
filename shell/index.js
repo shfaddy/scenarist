@@ -1,5 +1,5 @@
 import Scenarist from '@shfaddy/scenarist';
-import Nota from './nota.js';
+import Scenario from './scenario.js';
 import { Interface, createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { parse, join } from 'node:path';
@@ -22,11 +22,11 @@ this .interrupt ();
 
 }
 
-if ( ! ( this .scenario instanceof Nota ) ) {
+if ( ! ( this .scenario instanceof Scenario ) ) {
 
-this .$_nota = new Nota;
+this .$_scenario = new Scenario;
 
-this .ready .push ( this .play ( '--nota' ) );
+this .ready .push ( this .play ( '--scenario' ) );
 
 }
 
@@ -70,7 +70,7 @@ return this .play;
 
 };
 
-get [ '$--nota' ] () { return this .$_nota };
+get [ '$--scenario' ] () { return this .$_scenario };
 
 async [ '$--open' ] ( { play: $ }, path, direction ) {
 
@@ -119,16 +119,16 @@ this .interface [ Symbol .for ( 'processing' ) ] = true;
 
 try {
 
-await $ (
+await $ ( Symbol .for ( 'output' ), {
 
-Symbol .for ( 'output' ),
-response = await $ ( Object .assign ( story, {
+line: argv .join ( ' ' ),
+response: ( response = await $ ( Object .assign ( story, {
 
 interrupt: this .interface [ Symbol .for ( 'interrupt' ) ]
 
-} ), ... argv )
+} ), ... argv ) )
 
-);
+} );
 
 } catch ( error ) {
 
@@ -147,14 +147,26 @@ return story .return !== true ? ( typeof response === 'function' ? response : $ 
 
 };
 
-get [ '$--output' ] () { return this .$_output };
+[ '$--output' ] ( { play: $ }, ... argv ) {
+
+return $ ( Symbol .for ( 'output' ), { response: argv .join ( ' ' ) } );
+
+};
 
 $_output ( { play: $ }, ... argv ) {
+
 
 if ( ! argv .length )
 return;
 
-let response = argv .shift ();
+const { line, response } = argv .shift ();
+
+if ( response ?.[ Symbol .for ( 'record' ) ] === true ) {
+$ ( '--scenario', 'enter', line );
+
+response = response [ Symbol .for ( 'response' ) ];
+
+}
 
 switch ( typeof response ) {
 
@@ -165,9 +177,9 @@ response = Object .entries ( response );
 
 return $ ( Symbol .for ( 'output' ), ... [ ... response ] .map (
 
-output => output instanceof Array ? output .join ( ': ' ) : output
+output => ( { line, response: output instanceof Array ? output .join ( ': ' ) : output } )
 
-) );
+), ... argv );
 
 case 'string':
 case 'number':

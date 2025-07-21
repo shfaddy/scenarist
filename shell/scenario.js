@@ -1,6 +1,6 @@
 import { readdir as list, mkdir as make, readFile as read, writeFile as write } from 'node:fs/promises';
 
-export default class Nota extends Array {
+export default class Scenario extends Map {
 
 async $_producer ( _ ) {
 
@@ -8,7 +8,7 @@ const { play: $ } = _;
 
 try {
 
-const location = [ ... ( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ), '.nota' ] .join ( '/' );
+const location = [ ... ( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ), '.scenario' ] .join ( '/' );
 
 const file = await read ( location, 'utf8' )
 .then ( file => file .split ( '\n' ) )
@@ -32,7 +32,7 @@ console .error ( '#bad', _ );
 $_director ( { play: $ }, ... argv ) {
 
 if ( ! argv .length )
-return this .map (
+return [ ... this .values () ] .map (
 
 ( argv, index ) => `${ this .numbered ? ( ++index + ' ' ) : '' }${ argv .join ( ' ' ) }`
 
@@ -64,10 +64,12 @@ return $ ();
 
 async $enter ( { play: $ }, ... argv ) {
 
+const direction = argv [ 0 ] ?.direction ? argv .shift () .direction : ( this .size + 1 );
+
 if ( ! argv .length )
 return $ ();
 
-this .push ( argv );
+this .set ( direction, argv );
 
 return $ ( Symbol .for ( 'file' ) );
 
@@ -79,7 +81,7 @@ const location = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'l
 
 await make ( location .join ( '/' ), { recursive: true } );
 
-await write ( [ ... location, '.nota' ] .join ( '/' ), this .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ), 'utf8' );
+await write ( [ ... location, '.scenario' ] .join ( '/' ), [ ... this .values () ] .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ), 'utf8' );
 
 return $ ();
 
@@ -89,13 +91,13 @@ async $play ( _ ) {
 
 const { play: $ } = _;
 
-if ( _ .nota === undefined )
-_ .nota = this .splice ( 0 );
+if ( _ .scenario === undefined )
+_ .scenario = [ ... this .values () ];
 
-if ( ! _ .nota .length )
+if ( ! _ .scenario .length )
 return $ ( Symbol .for ( 'file' ) );
 
-const argv = _ .nota .shift ();
+const argv = _ .scenario .shift ();
 
 if ( ! _ .return )
 _ .return = true;
@@ -103,17 +105,10 @@ _ .return = true;
 const output = await $ ( _, Symbol .for ( 'senior' ), Symbol .for ( 'prompt' ), ... argv );
 
 if ( output === Symbol .for ( 'error' ) )
-throw "Could not complete playing this nota";
-
-this .push ( argv );
+throw "Could not complete playing this scenario";
 
 if ( typeof output === 'function' )
-return Promise .all ( [
-
-$ ( Symbol .for ( 'file' ) ),
-( await output ( Symbol .for ( 'nota' ), '.' ) ) ( _, 'play' )
-
-] );
+return ( await output ( '--scenario', '.' ) ) ( _, 'play' );
 
 return $ ( _, 'play' );
 

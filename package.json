@@ -27,10 +27,9 @@
   "author": "Shaikh Faddy <shfaddy@gmail.com> (https://github.com/shfaddy#README)",
   "type": "module",
   "bin": "./index.js",
-  "main": "index.js",
+  "main": "server.js",
   "exports": {
-    ".": "./core.js",
-    "./shell": "./shell.js",
-    "./hello": "./hello.js"
+    ".": "./index.js",
+    "./shell": "./shell/index.js"
   }
 }
