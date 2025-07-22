@@ -5,12 +5,8 @@ export default class Scenario extends Map {
 async $_producer ( _ ) {
 
 const { play: $ } = _;
-
-try {
-
-const location = [ ... ( await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ), '.scenario' ] .join ( '/' );
-
-const file = await read ( location, 'utf8' )
+const { path } = await $ ( Symbol .for ( 'path' ) );
+const file = await read ( path, 'utf8' )
 .then ( file => file .split ( '\n' ) )
 .catch ( () => false );
 
@@ -21,11 +17,15 @@ await $ ( _, 'enter', ... line .split ( /\s+/ ) );
 
 await $ ( _, 'play' );
 
-} catch ( _ ) {
+};
 
-console .error ( '#bad', _ );
+async $_path ( { play: $ } ) {
 
-}
+const directory = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ] .join ( '/' );
+const file = [ ... await $ ( '--prefix' ), 'scenario' ] .join ( '.' );
+const path = [ directory, file ] .join ( '/' );
+
+return { directory, file, path };
 
 };
 
@@ -77,11 +77,17 @@ return $ ( Symbol .for ( 'file' ) );
 
 async $_file ( { play: $ } ) {
 
-const location = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ];
+const { directory, path } = await $ ( Symbol .for ( 'path' ) );
 
-await make ( location .join ( '/' ), { recursive: true } );
+await make ( directory, { recursive: true } );
 
-await write ( [ ... location, '.scenario' ] .join ( '/' ), [ ... this .values () ] .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ), 'utf8' );
+await write (
+
+path,
+[ ... this .values () ] .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ),
+'utf8'
+
+);
 
 return $ ();
 

@@ -20,6 +20,8 @@ this .direction = details .story .direction;
 if ( details .senior instanceof Scenarist )
 this .senior = details .senior;
 
+this .prefix = details .prefix instanceof Array ? details .prefix : [];
+
 if ( typeof scenario ?.$_producer !== 'undefined' )
 this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details || this .senior ?.scenario ?.details ) );
 
@@ -32,12 +34,6 @@ await Promise .all ( this .ready );
 return this .play;
 
 }; // this .publish
-
-async throw ( message ) {
-
-throw `${ ( await this .play ( Symbol .for ( 'location' ) ) ) .join ( '/' ) }: ${ message }`;
-
-};
 
 static Story = class Story {
 
@@ -74,7 +70,7 @@ else if ( story .direction === undefined )
 return;
 
 else
-await this .throw ( "Unknown direction: " + story .direction .toString () );
+throw "Unknown direction: " + story .direction .toString ();
 
 }
 
@@ -87,7 +83,8 @@ if ( ! this .plot .has ( story .conflict ) ) {
 const junior = new this .constructor ( story .conflict, Object .assign ( Object .create ( this .details || {} ), {
 
 story,
-senior: this
+senior: this,
+prefix: this .prefix
 
 } ) );
 
@@ -106,12 +103,12 @@ case 'function':
 if ( story .conflict === story .conflict ?.prototype ?.constructor ) {
 
 if ( ! scene .length )
-await this .throw ( `direction for the new ${ story .conflict .name } scenario is missing` );
+throw `direction for the new ${ story .conflict .name } scenario is missing`;
 
 story .location = this .constructor .location ( story .direction = scene .shift () );
 
 if ( story .setting [ story .location ] !== undefined )
-await this .throw ( `Scenario with the direction ${ story .direction } already exists` );
+throw `Scenario with the direction ${ story .direction } already exists`;
 
 story .setting [ story .location ] = new story .conflict ( this .scenario .details );
 
@@ -175,6 +172,8 @@ return this .senior ?.play ? this .senior .play ( story, '~', ... argv ) : this 
 
 };
 
+[ '$--prefix' ] () { return this .prefix };
+
 get [ '$--direction' ] () { return this .$_direction };
 
 $_direction ( _, direction = this .direction ) {
@@ -182,6 +181,8 @@ $_direction ( _, direction = this .direction ) {
 return typeof direction === 'symbol' ? undefined : this .direction = direction;
 
 }; // this .play ( '--direction', direction )
+
+get [ '$--location' ] () { return this .$_location };
 
 async $_location ( { play: $ } ) {
 

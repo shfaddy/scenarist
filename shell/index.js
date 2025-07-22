@@ -54,7 +54,15 @@ return this .interface [ Symbol .for ( 'scenarist' ) ] .play ( Symbol .for ( 'in
 
 async publish () {
 
-await super .publish ();
+await super .publish ()
+.catch ( error => {
+
+if ( typeof this .interface ?.close === 'function' )
+this .interface .close ();
+
+throw error;
+
+} );
 
 if ( this .senior )
 return this .play;
@@ -96,7 +104,7 @@ async $_prompt ( story, ... argv ) {
 this .interface [ Symbol .for ( 'scenarist' ) ] = this;
 
 const { play: $ } = story;
-let line = this .interface .question ( ( await $ ( Symbol .for ( 'location' ) ) ) .join ( ' ' ) + ': ' )
+let line = this .interface .question ( [ ... await $ ( '--prefix' ), ... await $ ( Symbol .for ( 'location' ) ) ] .join ( ' ' ) + ': ' )
 .catch ( error => false );
 
 if ( argv .length )
@@ -132,7 +140,7 @@ interrupt: this .interface [ Symbol .for ( 'interrupt' ) ]
 
 } catch ( error ) {
 
-console .error ( error );
+console .error ( [ ... await $ ( '--prefix' ), ... await $ ( '--location' ) ] .join ( ' ' ) + ':', error );
 
 this .interface [ Symbol .for ( 'processing' ) ] = false;
 
