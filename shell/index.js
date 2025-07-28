@@ -24,9 +24,9 @@ this .interrupt ();
 
 if ( ! ( this .scenario instanceof Scenario ) ) {
 
-this .$_scenario = new Scenario;
+this .$scenario = new Scenario;
 
-this .ready .push ( this .play ( '--scenario' ) );
+this .ready .push ( this .play ( 'scenario' ) );
 
 }
 
@@ -78,8 +78,6 @@ return this .play;
 
 };
 
-get [ '$--scenario' ] () { return this .$_scenario };
-
 async [ '$--open' ] ( { play: $ }, path, direction ) {
 
 if ( path === undefined )
@@ -120,7 +118,6 @@ return $ ( story, Symbol .for ( 'process' ), ... ( line = line .trim () ) .lengt
 async $_process ( story, ... argv ) {
 
 const { play: $ } = story;
-
 let response;
 
 this .interface [ Symbol .for ( 'processing' ) ] = true;
@@ -163,14 +160,14 @@ return $ ( Symbol .for ( 'output' ), { response: argv .join ( ' ' ) } );
 
 $_output ( { play: $ }, ... argv ) {
 
-
 if ( ! argv .length )
 return;
 
 const { line, response } = argv .shift ();
 
 if ( response ?.[ Symbol .for ( 'record' ) ] === true ) {
-$ ( '--scenario', 'enter', line );
+
+$ ( 'scenario', 'enter', line );
 
 response = response [ Symbol .for ( 'response' ) ];
 

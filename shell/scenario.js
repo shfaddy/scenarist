@@ -2,34 +2,87 @@ import { readdir as list, mkdir as make, readFile as read, writeFile as write } 
 
 export default class Scenario extends Map {
 
+constructor ( details = {} ) {
+
+
+super ();
+
+this .details = details;
+
+};
+
 async $_producer ( _ ) {
 
 const { play: $ } = _;
-const { path } = await $ ( Symbol .for ( 'path' ) );
-const file = await read ( path, 'utf8' )
-.then ( file => file .split ( '\n' ) )
-.catch ( () => false );
 
-if ( file !== false )
-for ( let line of file )
-if ( ( line = line .trim () ) .length )
-await $ ( _, 'enter', ... line .split ( /\s+/ ) );
+if ( ! this .details [ Symbol .for ( 'player' ) ] )
+this .details [ Symbol .for ( 'player' ) ] = $;
+
+return $ ( 'read', 'README.md' )
+.catch ( error => {
+
+if ( error ?.code === 'ENOENT' )
+return false;
+
+throw error;
+
+} );
+
+};
+
+$_director ( _, ... argv ) {
+
+if ( ! this .open )
+return;
+
+if ( argv [ 0 ] === '```' )
+return this .open = false;
+
+if ( _ .scenario instanceof Array )
+_ .scenario .push ( argv );
+
+this .set ( this .size + 1, argv );
+
+return true;
+
+};
+
+async $read ( _, file ) {
+
+const { play: $ } = _;
+const { path } = await $ ( Symbol .for ( 'path' ), file );
+const script = await read ( path, 'utf8' )
+.then ( file => file .split ( '\n' ) );
+
+_ .scenario = [];
+
+for ( let line of script )
+if ( ( line = line .trim () ) .length ) {
+
+const argv = line .split ( /\s+/ );
+
+if ( ! this .open )
+await $ ( _, ... argv );
+
+else
+await $ ( _, Symbol .for ( 'director' ), ... argv )
+
+}
 
 await $ ( _, 'play' );
 
 };
 
-async $_path ( { play: $ } ) {
+async $_path ( { play: $ }, file ) {
 
-const directory = [ '.', ... await $ ( Symbol .for ( 'senior' ), Symbol .for ( 'location' ) ) ] .join ( '/' );
-const file = [ ... await $ ( '--prefix' ), 'scenario' ] .join ( '.' );
+const directory = [ '.', ... await $ ( Symbol .for ( 'location' ) ) ] .join ( '/' );
 const path = [ directory, file ] .join ( '/' );
 
 return { directory, file, path };
 
 };
 
-$_director ( { play: $ }, ... argv ) {
+$print ( { play: $ }, ... argv ) {
 
 if ( ! argv .length )
 return [ ... this .values () ] .map (
@@ -58,20 +111,35 @@ this .numbered = true;
 
 }
 
-return $ ();
+return $ ( 'print' );
 
 };
 
-async $enter ( { play: $ }, ... argv ) {
+$_enter ( _, ... argv ) {
 
-const direction = argv [ 0 ] ?.direction ? argv .shift () .direction : ( this .size + 1 );
+if ( ! this .open )
+return Symbol .for ( 'closed' );
 
-if ( ! argv .length )
-return $ ();
+if ( _ .scenario instanceof Array )
+_ .scenario .push ( argv );
 
-this .set ( direction, argv );
+this .set ( this .size + 1, argv );
 
-return $ ( Symbol .for ( 'file' ) );
+return true;
+
+};
+
+open = false;
+
+async [ '$```scenario' ] ( { play: $ }, ... argv ) {
+
+if ( this .open )
+throw "Scenario is already open for writing";
+
+if ( argv .join ( ' ' ) !== ( await $ ( '--prefix' ) ) .join ( ' ' ) )
+return;
+
+return this .open = true;
 
 };
 
@@ -95,13 +163,13 @@ return $ ();
 
 async $play ( _ ) {
 
-const { play: $ } = _;
+const { [ Symbol .for ( 'player' ) ]: $ } = this .details;
 
 if ( _ .scenario === undefined )
 _ .scenario = [ ... this .values () ];
 
 if ( ! _ .scenario .length )
-return $ ( Symbol .for ( 'file' ) );
+return true;
 
 const argv = _ .scenario .shift ();
 
@@ -114,7 +182,7 @@ if ( output === Symbol .for ( 'error' ) )
 throw "Could not complete playing this scenario";
 
 if ( typeof output === 'function' )
-return ( await output ( '--scenario', '.' ) ) ( _, 'play' );
+return ( await output ( 'scenario', '.' ) ) ( _, 'play' );
 
 return $ ( _, 'play' );
 

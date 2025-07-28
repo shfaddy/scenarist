@@ -22,6 +22,8 @@ this .senior = details .senior;
 
 this .prefix = details .prefix instanceof Array ? details .prefix : [];
 
+Object .defineProperty ( this .scenario, '$--reproduce', { value: Object .getPrototypeOf ( this .scenario ) .constructor } );
+
 if ( typeof scenario ?.$_producer !== 'undefined' )
 this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details || this .senior ?.scenario ?.details ) );
 
@@ -110,7 +112,7 @@ story .location = this .constructor .location ( story .direction = scene .shift 
 if ( story .setting [ story .location ] !== undefined )
 throw `Scenario with the direction ${ story .direction } already exists`;
 
-story .setting [ story .location ] = new story .conflict ( this .scenario .details );
+story .setting [ story .location ] = new story .conflict ( story .details !== undefined ? story .details : this .scenario .details );
 
 story .resolution = await this .play ( story, story .direction, ... scene );
 
@@ -198,12 +200,6 @@ return location;
 return [ ... await this .senior .play ( Symbol .for ( 'location' ) ), ... location ];
 
 }; // this .play ( Symbol .for ( 'location ) )
-
-get [ '$--reproduce' ] () {
-
-return Object .getPrototypeOf ( this .scenario ) .constructor;
-
-}; // this .play ( '--reproduce', ... argv );
 
 [ '$--directory' ] ( _, scenario ) {
 
