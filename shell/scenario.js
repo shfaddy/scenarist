@@ -2,23 +2,17 @@ import { readdir as list, mkdir as make, readFile as read, writeFile as write } 
 
 export default class Scenario extends Map {
 
-constructor ( details = {} ) {
-
+constructor ( setting ) {
 
 super ();
 
-this .details = details;
+this .setting = Object .create ( setting );
 
 };
 
 async $_producer ( _ ) {
 
-const { play: $ } = _;
-
-if ( ! this .details [ Symbol .for ( 'player' ) ] )
-this .details [ Symbol .for ( 'player' ) ] = $;
-
-return $ ( 'read', 'README.md' )
+return _ .play ( Symbol .for ( 'read' ), 'README.md' )
 .catch ( error => {
 
 if ( error ?.code === 'ENOENT' )
@@ -30,16 +24,22 @@ throw error;
 
 };
 
-$_director ( _, ... argv ) {
+get $_director () { return this .$from };
 
-if ( ! this .open )
-return;
+$from ( _, ... argv ) {
+
+if ( argv .length && ! this .open && ! this .reading )
+return _ .play ( Symbol .for ( 'read' ), ... argv );
+
+};
+
+$_enter ( _, ... argv ) {
 
 if ( argv [ 0 ] === '```' )
 return this .open = false;
 
-if ( _ .scenario instanceof Array )
-_ .scenario .push ( argv );
+if ( _ .script instanceof Array )
+_ .script .push ( argv );
 
 this .set ( this .size + 1, argv );
 
@@ -47,35 +47,62 @@ return true;
 
 };
 
-async $read ( _, file ) {
+static book = new Map;
 
-const { play: $ } = _;
-const { path } = await $ ( Symbol .for ( 'path' ), file );
-const script = await read ( path, 'utf8' )
-.then ( file => file .split ( '\n' ) );
+async $_read ( _, ... argv ) {
 
-_ .scenario = [];
+const { player } = this .setting;
+const $ = await player ( '--read', '.' );
+const { path } = await $ ( Symbol .for ( 'path' ), ... argv );
+
+if ( ! this .constructor .book .has ( path ) )
+this .constructor .book .set ( path, await read ( path, 'utf8' )
+.then ( file => file .split ( '\n' ) ) );
+
+const script = this .constructor .book .get ( path );
+
+this .reading = true;
+
+_ .script = [];
 
 for ( let line of script )
 if ( ( line = line .trim () ) .length ) {
 
-const argv = line .split ( /\s+/ );
+let argv = line .split ( /\s+/ );
 
-if ( ! this .open )
-await $ ( _, ... argv );
+if ( ! this .open ) {
 
-else
-await $ ( _, Symbol .for ( 'director' ), ... argv )
+if ( argv .shift () === '```scenario' )
+await $ ( Symbol .for ( 'open' ), ... argv );
 
 }
+
+else
+await $ ( _, Symbol .for ( 'enter' ), ... argv )
+
+}
+
+this .reading = false;
 
 await $ ( _, 'play' );
 
 };
 
-async $_path ( { play: $ }, file ) {
+async $_path ( _, ... argv ) {
 
-const directory = [ '.', ... await $ ( Symbol .for ( 'location' ) ) ] .join ( '/' );
+const { player: $ } = this .setting;
+const file = argv .pop ();
+const location = await $ ( '--location', ... argv );
+
+if ( location === false )
+throw `No scenario is found at ${ argv .join ( ' ' ) }`;
+
+const directory = [
+
+process .cwd (),
+... await $ ( ... argv, '--location' )
+
+] .join ( '/' );
 const path = [ directory, file ] .join ( '/' );
 
 return { directory, file, path };
@@ -115,29 +142,15 @@ return $ ( 'print' );
 
 };
 
-$_enter ( _, ... argv ) {
-
-if ( ! this .open )
-return Symbol .for ( 'closed' );
-
-if ( _ .scenario instanceof Array )
-_ .scenario .push ( argv );
-
-this .set ( this .size + 1, argv );
-
-return true;
-
-};
-
 open = false;
 
-async [ '$```scenario' ] ( { play: $ }, ... argv ) {
-
-if ( this .open )
-throw "Scenario is already open for writing";
+async $_open ( { play: $ }, ... argv ) {
 
 if ( argv .join ( ' ' ) !== ( await $ ( '--prefix' ) ) .join ( ' ' ) )
 return;
+
+if ( this .open )
+throw "Scenario is already open for writing";
 
 return this .open = true;
 
@@ -163,28 +176,28 @@ return $ ();
 
 async $play ( _ ) {
 
-const { [ Symbol .for ( 'player' ) ]: $ } = this .details;
+const { player: $ } = this .setting;
 
-if ( _ .scenario === undefined )
-_ .scenario = [ ... this .values () ];
+if ( _ .script === undefined )
+_ .script = [ ... this .values () ];
 
-if ( ! _ .scenario .length )
+if ( ! _ .script .length )
 return true;
 
-const argv = _ .scenario .shift ();
+const argv = _ .script .shift ();
 
 if ( ! _ .return )
 _ .return = true;
 
-const output = await $ ( _, Symbol .for ( 'senior' ), Symbol .for ( 'prompt' ), ... argv );
+const output = await $ ( _, Symbol .for ( 'prompt' ), ... argv );
 
 if ( output === Symbol .for ( 'error' ) )
 throw "Could not complete playing this scenario";
 
 if ( typeof output === 'function' )
-return ( await output ( 'scenario', '.' ) ) ( _, 'play' );
+return output ( _, '--read', 'play' );
 
-return $ ( _, 'play' );
+return $ ( _, '--read', 'play' );
 
 };
 

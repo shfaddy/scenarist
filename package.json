@@ -26,7 +26,7 @@
   "license": "Unlicense",
   "author": "Shaikh Faddy <shfaddy@gmail.com> (https://github.com/shfaddy#README)",
   "type": "module",
-  "bin": "./index.js",
+  "bin": "./server.js",
   "main": "server.js",
   "exports": {
     ".": "./index.js",

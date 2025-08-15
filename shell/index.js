@@ -24,9 +24,9 @@ this .interrupt ();
 
 if ( ! ( this .scenario instanceof Scenario ) ) {
 
-this .$scenario = new Scenario;
+this [ '$--read' ] = new Scenario ( { player: this .play } );
 
-this .ready .push ( this .play ( 'scenario' ) );
+this .ready .push ( this .play ( '--read' ) );
 
 }
 
@@ -167,7 +167,7 @@ const { line, response } = argv .shift ();
 
 if ( response ?.[ Symbol .for ( 'record' ) ] === true ) {
 
-$ ( 'scenario', 'enter', line );
+$ ( '--read', 'enter', line );
 
 response = response [ Symbol .for ( 'response' ) ];
 

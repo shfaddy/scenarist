@@ -24,8 +24,12 @@ this .prefix = details .prefix instanceof Array ? details .prefix : [];
 
 Object .defineProperty ( this .scenario, '$--reproduce', { value: Object .getPrototypeOf ( this .scenario ) .constructor } );
 
+Object .defineProperty ( this .scenario, '$--produce', { value: Object } );
+
+this .scenario .setting = this .scenario .setting || ( this .senior ?.scenario ?.setting || {} );
+
 if ( typeof scenario ?.$_producer !== 'undefined' )
-this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .details || this .senior ?.scenario ?.details ) );
+this .ready .push ( this .play ( Symbol .for ( 'producer' ), this .scenario .setting ) );
 
 }; // this .constructor
 
@@ -55,17 +59,17 @@ story .scene = scene;
 story .location = this .constructor .location ( story .direction = scene .shift () );
 
 if ( ( typeof story .direction === 'symbol' || this .scenario .priority !== true ) && this [ story .location ] )
-story .conflict = await ( story .setting = this ) [ story .location ];
+story .conflict = await ( story .scope = this ) [ story .location ];
 
 else
-story .conflict = await ( story .setting = this .scenario ) [ story .location ];
+story .conflict = await ( story .scope = this .scenario ) [ story .location ];
 
 if ( story .conflict === undefined ) {
 
 if ( story .direction !== undefined )
 story .scene .unshift ( story .direction );
 
-if ( typeof story .setting .$_director !== 'undefined' )
+if ( typeof story .scope .$_director !== 'undefined' )
 return await story .play ( story, Symbol .for ( 'director' ), ... story .scene );
 
 else if ( story .direction === undefined )
@@ -109,17 +113,17 @@ throw `direction for the new ${ story .conflict .name } scenario is missing`;
 
 story .location = this .constructor .location ( story .direction = scene .shift () );
 
-if ( story .setting [ story .location ] !== undefined )
+if ( story .scope [ story .location ] !== undefined )
 throw `Scenario with the direction ${ story .direction } already exists`;
 
-story .setting [ story .location ] = new story .conflict ( story .details !== undefined ? story .details : this .scenario .details );
+story .scope [ story .location ] = new story .conflict ( story .setting !== undefined ? story .setting : this .scenario .setting );
 
 story .resolution = await this .play ( story, story .direction, ... scene );
 
 }
 
 else
-story .resolution = await story .conflict .call ( story .setting, story, ... scene );
+story .resolution = await story .conflict .call ( story .scope, story, ... scene );
 
 break;
 
@@ -186,7 +190,19 @@ return typeof direction === 'symbol' ? undefined : this .direction = direction;
 
 get [ '$--location' ] () { return this .$_location };
 
-async $_location ( { play: $ } ) {
+async $_location ( { play: $ }, ... argv ) {
+
+if ( argv .length ) {
+
+const direction = argv .shift ();
+const location = this .constructor .location ( direction );
+
+if ( ! this [ location ] && ! this .scenario [ location ] )
+return false;
+
+return $ ( direction, Symbol .for ( 'location' ), ... argv );
+
+}
 
 const location = [];
 const direction = await $ ( '--direction' );
@@ -201,28 +217,38 @@ return [ ... await this .senior .play ( Symbol .for ( 'location' ) ), ... locati
 
 }; // this .play ( Symbol .for ( 'location ) )
 
-[ '$--directory' ] ( _, scenario ) {
+async [ '$--directory' ] ( _, type, scenario ) {
 
 const directory = [];
 
-for ( const location of Object .keys ( this .scenario ) ) {
+for ( const location of Object .keys ( scenario = typeof scenario === 'object' ? scenario : this .scenario ) ) {
 
 if (
 
 location [ 0 ] === '$' && location [ 1 ] !== '_'
-&& typeof this .scenario [ location ] === 'object'
-&& ( scenario === undefined || Object .getPrototypeOf ( this .scenario [ location ] ) .constructor .name === scenario )
+&& typeof scenario [ location ] === 'object'
+&& ( type === undefined || Object .getPrototypeOf ( scenario [ location ] ) .constructor .name === type )
 
 ) directory .push ( [
 
-Object .getPrototypeOf ( this .scenario [ location ] ) .constructor .name,
+Object .getPrototypeOf ( scenario [ location ] ) .constructor .name,
 location .slice ( 1 )
 
 ] );
 
 }
 
+scenario = Object .getPrototypeOf ( scenario );
+
+if ( scenario ?.constructor === Object  )
+
+if ( this instanceof scenario .constructor )
 return directory;
+
+else
+return [ ... directory, ... await _ .play ( '--directory', type, this ) ]
+
+return [ ... directory, ... await _ .play ( '--directory', type, scenario ) ];
 
 };
 

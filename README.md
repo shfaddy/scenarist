@@ -1,41 +1,113 @@
 # What Is This?
 
-Hello World! This is Shaikh Faddy's Scenarist
+Hello World! This is Scenarist
 
-# Who is Shaikh Faddy?
+## What's Scenarist?
 
-Shaikh Faddy is a Computer Scientist and Artist
+Scenarist is a Vanilla JavaScript library for developing apps as Recursive Functions
 
-# What's That Scenarist?
+## What Is the Benefit of Developing Apps as Recursive Functions?
 
-Scenarist is Shaikh Faddy's JavaScript library for developing apps
+When an app is developed as a recursive function, this function acts as a language for the app.
+Following this concept, the only accessibility barrier to an app is the knowledge of its language;
+making it possible for people and systems with different capabilities to build and share their own ways for using it.
 
-# Why Is Shaikh Faddy Creating a JavaScript Library for Developing Apps?
+# How Can Apps Be Developed Using Scenarist?
 
-Because Shaikh Faddy is blind
+## Install Scenarist
 
-# What's Wrong with That?
-
-Nothing
-
-# Why Doesn't Shaikh Faddy Develop Apps Using an Already Existing JavaScript Library?
-
-Major libraries, like ReactJS, are data-oriented, since they all follow the MVC architecture;
-while Shaikh Faddy's approach for designing and developing apps is user-oriented
-* Major libraries are only compatible with the Web platform; while Shaikh Faddy is mainly a command-line user
-* Major libraries are insanely alike, they differ from each other in a way similar to how Coca-Cola and Pepsi differ from each other
-
-# How Is an App Developed Using Shaikh Faddy's Scenarist?
-
-It must be installed first
-
-# How is Shaikh Faddy's Scenarist Installed?
-
-Assuming that `node` and `npm` are already installed,
-the following command can be run to install Shaikh Faddy's Scenarist wherever it's desired to be used:
+Assuming that `npm` command is already installed;
+the following command can be run to install Scenarist wherever it's desired to be used:
 
 ```sh
 npm i @shfaddy/scenarist
 ```
 
-# How Is Scenarist
+## Import Scenarist
+
+Scenarist class is exported as the default of the installed ECMAScript Module;
+and can be imported as following:
+
+```js
+import Scenarist from '@shfaddy/scenarist';
+```
+
+## Write App Scenario
+
+Scenario is the way of describing and developing the logic and language of a Scenarist App.
+It can be a JavaScript object of any class.
+
+```js
+const scenario = new class {
+
+// Scenario code will be written here shortly
+
+};
+```
+
+### Scenario Accessible Locations
+
+A property in a scenario is considered as an accessible location if its key starts with `$`.
+Then, this location can be accessed by
+
+```js
+const scenario = new class {
+
+$anAccessibleLocation = "Welcome to this accessible location";
+
+$anotherAccessibleLocation () {
+
+return "Welcome to this other accessible location; but this location is a function so it'll do more shortly!";
+
+};
+
+$anAccessibleRecursiveLocation = new class {
+
+$anAccessibleLocation = "Welcome to this accessible location";
+
+$anotherAccessibleLocation () {
+
+return "Welcome to this other accessible location; but this location is a function so it'll do more shortly!";
+
+};
+
+};
+
+};
+```
+
+#### P
+
+### Scenario Restricted Locations
+
+A property in a scenario is considered as a restricted location if it starts with `$_`.
+
+```js
+const scenario = new class {
+
+$_aRestrictedLocation = "Welcome to this restricted location! how did you get here?";
+
+$_anotherRestrictedLocation () {
+
+return "Welcome to this other restricted location; but this location is a function so it'll do more shortly! How did you get here?";
+
+};
+
+$anotherRestricte
+
+};
+```
+
+A direction is the argument when passed to the app function,
+Scenarist will be directed to play the action in that location.
+
+Accessible locations are played via `string` directions.
+
+```js
+console .log ( await app ( 'anAccessibleLocation' ) );
+
+// Outputs:
+// Welcome to this accessible location
+```
+
+Restricted locations are played via `symbol` directions.
