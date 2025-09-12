@@ -252,4 +252,6 @@ return [ ... directory, ... await _ .play ( '--directory', type, scenario ) ];
 
 };
 
+get $_scenario () { return this .scenario };
+
 };

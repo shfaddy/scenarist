@@ -89,11 +89,11 @@ if ( path [ 0 ] !== '/' && extension .endsWith ( 'js' ) )
 path = join ( process .cwd (), path );
 
 const { default: scenario } = await import ( path );
-const location = this .constructor .location ( direction || name );
+const location = this .constructor .location ( direction = direction || name );
 
-this .scenario [ location ] = scenario;
+this .scenario [ location ] = new scenario;
 
-return true;
+return this .play ( direction, '.' );
 
 };
 

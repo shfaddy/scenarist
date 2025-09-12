@@ -12,7 +12,7 @@ this .setting = Object .create ( setting );
 
 async $_producer ( _ ) {
 
-return _ .play ( Symbol .for ( 'read' ), 'README.md' )
+return _ .play ( Symbol .for ( 'read' ), 'README' )
 .catch ( error => {
 
 if ( error ?.code === 'ENOENT' )
@@ -51,8 +51,7 @@ static book = new Map;
 
 async $_read ( _, ... argv ) {
 
-const { player } = this .setting;
-const $ = await player ( '--read', '.' );
+const { play: $ } = _;
 const { path } = await $ ( Symbol .for ( 'path' ), ... argv );
 
 if ( ! this .constructor .book .has ( path ) )
@@ -84,14 +83,14 @@ await $ ( _, Symbol .for ( 'enter' ), ... argv )
 
 this .reading = false;
 
-await $ ( _, 'play' );
+return $ ( _, 'play' );
 
 };
 
 async $_path ( _, ... argv ) {
 
-const { player: $ } = this .setting;
-const file = argv .pop ();
+const $ = await _ .play ( '..' );
+const file = argv [ argv .length - 1 ] .endsWith ( '.md' ) ? argv .pop () : `${ argv .pop () }.md`;
 const location = await $ ( '--location', ... argv );
 
 if ( location === false )
@@ -176,7 +175,7 @@ return $ ();
 
 async $play ( _ ) {
 
-const { player: $ } = this .setting;
+const $ = await _ .play ( '..' );
 
 if ( _ .script === undefined )
 _ .script = [ ... this .values () ];
@@ -189,7 +188,8 @@ const argv = _ .script .shift ();
 if ( ! _ .return )
 _ .return = true;
 
-const output = await $ ( _, Symbol .for ( 'prompt' ), ... argv );
+// const output = await $ ( _, Symbol .for ( 'prompt' ), ... argv );
+const output = await $ ( ... argv );
 
 if ( output === Symbol .for ( 'error' ) )
 throw "Could not complete playing this scenario";
