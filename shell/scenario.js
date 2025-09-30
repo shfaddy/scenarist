@@ -185,19 +185,28 @@ return true;
 
 const argv = _ .script .shift ();
 
-if ( ! _ .return )
-_ .return = true;
+_ .script .line = _ .script .line === undefined ? 1 : ++_ .script .line;
 
-// const output = await $ ( _, Symbol .for ( 'prompt' ), ... argv );
+try {
+
 const output = await $ ( ... argv );
-
-if ( output === Symbol .for ( 'error' ) )
-throw "Could not complete playing this scenario";
 
 if ( typeof output === 'function' )
 return output ( _, '--read', 'play' );
 
 return $ ( _, '--read', 'play' );
+
+} catch ( error ) {
+
+throw `
+
+${ [ '~', ... await $ ( '--location' ) ] .join ( ' ' ) }: Could not complete playing this scenario
+
+line #${ _ .script .line } ${ argv .join ( ' ' ) }
+
+` .trim ();
+
+}
 
 };
 
