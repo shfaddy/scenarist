@@ -99,8 +99,7 @@ throw `No scenario is found at ${ argv .join ( ' ' ) }`;
 const directory = [
 
 process .cwd (),
-... location
-// await $ ( ... argv, '--location' )
+... await $ ( ... argv, '--location' )
 
 ] .join ( '/' );
 const path = [ directory, file ] .join ( '/' );

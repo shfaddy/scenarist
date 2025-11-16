@@ -1,108 +1,44 @@
 import Scenarist from '@shfaddy/scenarist';
-import Scenario from './scenario.js';
-import { Interface, createInterface } from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
-import { parse, join } from 'node:path';
-import { readdir as list } from 'node:fs/promises';
 
-export default class ScenaristAsAShell extends Scenarist {
+export default class ScenaristAsAPage extends Scenarist {
 
 constructor ( ... argv ) {
 
 super ( ... argv );
 
-if ( this .senior ?.interface instanceof Interface )
-this .interface = this .senior .interface;
-
-else {
-
-this .interface = createInterface ( { input, output } );
-
-this .interrupt ();
-
-}
-
-};
-
-interrupt () {
-
-this .interface [ Symbol .for ( 'interrupt' ) ] = new Promise ( check => {
-
-this .interface [ Symbol .for ( 'interrupt/check' ) ] = check;
-
-} );
-
-this .interface [ Symbol .for ( 'interrupt' ) ] .then ( () => this .interface [ Symbol .for ( 'scenarist' ) ] .interrupt () );
-
-this .interface .once ( 'SIGINT', () => {
-
-this .interface [ Symbol .for ( 'interrupt/check' ) ] ();
-
-return this .interface [ Symbol .for ( 'scenarist' ) ] .play ( Symbol .for ( 'interrupt' ) );
-
-} );
+this .model = ( this .senior ?.model instanceof HTMLElement ? this .senior .model : document .body .appendChild ( document .createElement ( 'main' ) ) )
+.appendChild ( document .createElement ( 'article' ) );
 
 };
 
 async publish () {
 
-await super .publish ()
-.catch ( error => {
+const { play: $ } = this;
+const prefix = await $ ( '--prefix' );
+const location = await $ ( '--location' );
 
-if ( typeof this .interface ?.close === 'function' )
-this .interface .close ();
+Object .assign ( this .model, {
 
-throw error;
+id: location .join ( '-' ),
+innerHTML: `
+
+<h2>${ location .map (
+
+=>
+
+) .join ( ' / ' )</h2>
+
+` .trim ()
 
 } );
 
-if ( ! ( this .scenario instanceof Scenario ) ) {
-
-this [ '$--read' ] = new Scenario ( { player: this .play } );
-
-await this .play ( '--read' );
-
-}
-
-if ( this .senior )
-return this .play;
-
-const argv = process .argv .slice ( 2 );
-
-if ( ( await list ( '.' ) ) .includes ( 'scenario.js' ) )
-argv .unshift ( '--open', 'scenario.js', process .cwd () .split ( '/' ) .pop () );
-
-this .play ( Symbol .for ( 'prompt' ), ... argv );
-
-return this .play;
-
-};
-
-async [ '$--open' ] ( { play: $ }, path, direction ) {
-
-if ( path === undefined )
-throw "Where is the Scenario you want to open is located?";
-
-const { name, ext: extension } = parse ( path );
-
-if ( path [ 0 ] !== '/' && extension .endsWith ( 'js' ) )
-path = join ( process .cwd (), path );
-
-const { default: scenario } = await import ( path );
-const location = this .constructor .location ( direction = direction || name );
-
-this .scenario [ location ] = new scenario;
-
-return this .play ( direction, '.' );
+return super .publish ();
 
 };
 
 async $_prompt ( story, ... argv ) {
 
-this .interface [ Symbol .for ( 'scenarist' ) ] = this;
-
 const { play: $ } = story;
-let line = this .interface .question ( [ ... await $ ( '--prefix' ), ... await $ ( Symbol .for ( 'location' ) ) ] .join ( ' ' ) + ': ' )
 .catch ( error => false );
 
 if ( argv .length )

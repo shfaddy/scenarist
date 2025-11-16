@@ -1,5 +1,3 @@
-import { readdir as list, mkdir as make, readFile as read, writeFile as write } from 'node:fs/promises';
-
 export default class Scenario extends Map {
 
 constructor ( setting ) {
@@ -24,9 +22,9 @@ throw error;
 
 };
 
-get $_director () { return this .$from };
+get $_director () { return this [ '$--from' ] };
 
-$from ( _, ... argv ) {
+[ '$--from' ] ( _, ... argv ) {
 
 if ( argv .length && ! this .open && ! this .reading )
 return _ .play ( Symbol .for ( 'read' ), ... argv );
@@ -55,8 +53,7 @@ const { play: $ } = _;
 const { path } = await $ ( Symbol .for ( 'path' ), ... argv );
 
 if ( ! this .constructor .book .has ( path ) )
-this .constructor .book .set ( path, await read ( path, 'utf8' )
-.then ( file => file .split ( '\n' ) ) );
+throw `No script is found at ${ path }`;
 
 const script = this .constructor .book .get ( path );
 
@@ -94,33 +91,27 @@ const file = argv [ argv .length - 1 ] .endsWith ( '.md' ) ? argv .pop () : `${ 
 const location = await $ ( '--location', ... argv );
 
 if ( location === false )
-throw `No scenario is found at ${ argv .join ( ' ' ) }`;
+throw `No location exists at ${ argv .join ( ' ' ) }`;
 
-const directory = [
-
-process .cwd (),
-... location
-// await $ ( ... argv, '--location' )
-
-] .join ( '/' );
-const path = [ directory, file ] .join ( '/' );
+const directory = location .join ( '/' );
+const path = directory + '/' + file;
 
 return { directory, file, path };
 
 };
 
-$print ( { play: $ }, ... argv ) {
+[ '$--print' ] ( { numbered } ) {
 
 if ( ! argv .length )
 return [ ... this .values () ] .map (
 
-( argv, index ) => `${ this .numbered ? ( ++index + ' ' ) : '' }${ argv .join ( ' ' ) }`
+( argv, index ) => `${ numbered ? ( ++index + ' ' ) : '' }${ argv .join ( ' ' ) }`
 
 );
 
 };
 
-[ '$--numbered' ] ( { play: $ }, answer ) {
+[ '$--numbered' ] ( _, answer ) {
 
 switch ( answer ) {
 
@@ -128,17 +119,17 @@ case 'no':
 case 'false':
 case 'balash':
 
-this .numbered = false;
+_ .numbered = false;
 
 break;
 
 default:
 
-this .numbered = true;
+_ .numbered = true;
 
 }
 
-return $ ( 'print' );
+return _ .play ( _, '--print' );
 
 };
 
@@ -160,13 +151,10 @@ async $_file ( { play: $ } ) {
 
 const { directory, path } = await $ ( Symbol .for ( 'path' ) );
 
-await make ( directory, { recursive: true } );
-
-await write (
+this .constructor .book .set (
 
 path,
-[ ... this .values () ] .map ( argv => argv .join ( ' ' ) ) .join ( '\n' ),
-'utf8'
+[ ... this .values () ] .map ( argv => argv .join ( ' ' ) ) .join ( '\n' )
 
 );
 
@@ -204,6 +192,8 @@ throw `
 ${ [ '~', ... await $ ( '--location' ) ] .join ( ' ' ) }: Could not complete playing this scenario
 
 line #${ _ .script .line } ${ argv .join ( ' ' ) }
+
+${ error ?.message || error }
 
 ` .trim ();
 
