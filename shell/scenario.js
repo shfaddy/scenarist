@@ -24,9 +24,9 @@ throw error;
 
 };
 
-get $_director () { return this .$from };
+get $_director () { return this [ '$--from' ] };
 
-$from ( _, ... argv ) {
+[ '$--from' ] ( _, ... argv ) {
 
 if ( argv .length && ! this .open && ! this .reading )
 return _ .play ( Symbol .for ( 'read' ), ... argv );
@@ -204,6 +204,7 @@ throw `
 ${ [ '~', ... await $ ( '--location' ) ] .join ( ' ' ) }: Could not complete playing this scenario
 
 line #${ _ .script .line } ${ argv .join ( ' ' ) }
+${ ( error ?.message || error ) .toString () }
 
 ` .trim ();
 

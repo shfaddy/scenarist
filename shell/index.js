@@ -1,6 +1,7 @@
 import Scenarist from '@shfaddy/scenarist';
 import Scenario from './scenario.js';
 import { Interface, createInterface } from 'node:readline/promises';
+import { emitKeypressEvents } from 'node:readline';
 import { stdin as input, stdout as output } from 'node:process';
 import { parse, join } from 'node:path';
 import { readdir as list } from 'node:fs/promises';
@@ -17,6 +18,13 @@ this .interface = this .senior .interface;
 else {
 
 this .interface = createInterface ( { input, output } );
+
+emitKeypressEvents ( input );
+
+if ( input .isTTY )
+input .setRawMode ( true );
+
+input .on ( 'keypress', ( ... argv ) => this .interface [ Symbol .for ( 'scenarist' ) ] .play ( Symbol .for ( 'keypress' ), ... argv ) );
 
 this .interrupt ();
 
@@ -206,6 +214,24 @@ return $ ( Symbol .for ( 'output' ), ... argv );
 };
 
 get [ '$--exit' ] () { return this .$_end };
+
+async $_keypress ( { play: $ }, _, { sequence } ) {
+
+const line = await $ ( Symbol .for ( sequence ) ) .catch ( () => {} );
+
+if ( typeof line === 'string' ) {
+
+this .interface .prompt ();
+
+this .interface .write ( line );
+
+};
+
+};
+
+[ '$_\x18' ] = '--exit\n';
+
+[ '$_\x10' ] = '--produce ';
 
 $_interrupt ( { ticket, play: $ } ) {
 
